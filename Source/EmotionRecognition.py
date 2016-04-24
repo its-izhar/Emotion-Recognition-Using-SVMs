@@ -70,16 +70,25 @@ class Trainer:
         self.imgs = faces.images
         self.index = 0
 
+    def reset(self):
+        print "============================================"
+        print "Resetting Dataset & Previous Results.. Done!"
+        print "============================================"
+        self.results = {}
+        self.imgs = faces.images
+        self.index = 0
+
     def increment_face(self):
         if self.index + 1 >= len(self.imgs):
             return self.index
         else:
             while str(self.index) in self.results:
-                print self.index
+                # print self.index
                 self.index += 1
             return self.index
 
     def record_result(self, smile=True):
+        print "Image", self.index, ":", "Happy" if smile is True else "Sad"
         self.results[str(self.index)] = smile
 
 
@@ -123,6 +132,10 @@ def displayFace(face):
     ax.imshow(face, cmap='gray')
     f.canvas.draw()
 
+def _begin():
+    trainer.reset()
+    displayFace(trainer.imgs[trainer.index])
+
 def _quit():
     root.quit()     # stops mainloop
     root.destroy()  # this is necessary on Windows to prevent
@@ -137,6 +150,9 @@ smileButton.pack(side=Tk.LEFT)
 
 noSmileButton = Tk.Button(master=root, text='Sad', command=noSmileCallback)
 noSmileButton.pack(side=Tk.RIGHT)
+
+button = Tk.Button(master=root, text='Begin/Reset', command=_begin)
+button.pack(side=Tk.TOP)
 
 button = Tk.Button(master=root, text='Quit', command=_quit)
 button.pack(side=Tk.BOTTOM)
