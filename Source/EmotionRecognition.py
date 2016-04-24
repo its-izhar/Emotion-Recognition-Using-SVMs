@@ -14,7 +14,7 @@ The dataset used in this example is Olivetti Faces:
 
 """
 
-from pylab import *
+import matplotlib.pyplot as plt
 from sklearn import datasets
 
 faces = datasets.fetch_olivetti_faces()
@@ -22,6 +22,8 @@ print faces.keys()
 
 for i in range(10):
     face = faces.images[i]
-    subplot(1, 10, i + 1)
-    imshow(face.reshape((64, 64)), cmap='gray')
-    axis('off')
+    plt.subplot(1, 10, i + 1)
+    plt.imshow(face.reshape((64, 64)), cmap='gray')
+    plt.axis('off')
+plt.show()
+
