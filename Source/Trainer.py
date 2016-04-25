@@ -1,5 +1,6 @@
 from sklearn import datasets
 
+
 # Fetching the dataset
 faces = datasets.fetch_olivetti_faces()
 print faces.keys()

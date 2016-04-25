@@ -42,6 +42,10 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import matplotlib.pyplot as plt
 import numpy as np
+import json
+
+print(__doc__)
+
 from Trainer import *
 
 import sys
@@ -50,7 +54,6 @@ if sys.version_info[0] < 3:
 else:
     import tkinter as Tk
 
-print(__doc__)
 
 # Embedding things in a tkinter plot & Starting tkinter plot
 matplotlib.use('TkAgg')
@@ -91,6 +94,8 @@ canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 ## displayBarGraph(isBarGraph)  : computes the bar graph after classification is completed 100%
 ## _begin()                     : Resets the Dataset & Starts from the beginning
 ## _quit()                      : Quits the Application
+## printAndSaveResult()         : Save and print the classification result
+## loadResult()                 : Loading the previously stored classification result
 ## run_once(m)                  : Decorator to allow functions to run only once
 
 def run_once(m):
@@ -141,12 +146,25 @@ def displayBarGraph(isBarGraph):
     ax[1].legend()
 
 
+@run_once
+def printAndSaveResult():
+    print trainer.results                       # Prints the results
+    with open('results.xml', 'w') as output:
+        json.dump(trainer.results, output)        # Saving The Result
+
+@run_once
+def loadResult():
+    results = json.load(open('results.xml'))
+    trainer.results = results
+
+
 def displayFace(face):
     ax[0].imshow(face, cmap='gray')
     isBarGraph = 'on' if trainer.index+1 == len(faces.images)/8 else 'off'      # Switching Bar Graph ON
     if isBarGraph is 'on':
         displayBarGraph(isBarGraph)
-    f.tight_layout()
+        printAndSaveResult()
+    # f.tight_layout()
     canvas.draw()
 
 
@@ -182,5 +200,4 @@ button.pack(side=Tk.TOP)
 button = Tk.Button(master=root, text='Quit Application', command=_quit)
 button.pack(side=Tk.BOTTOM)
 
-Tk.mainloop()                   # Starts mainloop required by Tk
-print trainer.results           # Prints the results
+Tk.mainloop()                               # Starts mainloop required by Tk
