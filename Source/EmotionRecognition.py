@@ -54,7 +54,7 @@ print(__doc__)
 # Embedding things in a tkinter plot & Starting tkinter plot
 matplotlib.use('TkAgg')
 root = Tk.Tk()
-root.wm_title("Faces")
+root.wm_title("Emotion Recognition Using Scikit-Learn & OpenCV")
 
 
 faces = datasets.fetch_olivetti_faces()
@@ -90,7 +90,7 @@ class Trainer:
             return self.index
 
     def record_result(self, smile=True):
-        print "Image", self.index, ":", "Happy" if smile is True else "Sad"
+        print "Image", self.index + 1, ":", "Happy" if smile is True else "Sad"
         self.results[str(self.index)] = smile
 
 
@@ -100,11 +100,13 @@ class Trainer:
 trainer = Trainer()
 
 # Creating the figure to be embedded into the tkinter plot
-f = plt.figure()
+f = plt.figure(dpi=75, facecolor='black')
+plt.axis('off')
 ax = f.add_subplot(111)
 ax.imshow(faces.images[0], cmap='gray')
 
 # ax tk.DrawingArea
+# Embedding the Matplotlib figure 'f' into Tkinter canvas
 canvas = FigureCanvasTkAgg(f, master=root)
 canvas.show()
 canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
@@ -117,11 +119,12 @@ canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 # ===================================
 # Callback function for the buttons
 # ===================================
-## smileCallback()  : Gets called when "Happy" Button is pressed
-## noSmileCallback(): Gets called when "Sad" Button is pressed
-## displayFace()    : Gets called internally by either of the button presses
-## _begin()         : Resets the Dataset & Starts from the beginning
-## _quit()          : Quits the Application
+## smileCallback()      : Gets called when "Happy" Button is pressed
+## noSmileCallback()    : Gets called when "Sad" Button is pressed
+## updateImageCount()   : Displays the number of images processed
+## displayFace()        : Gets called internally by either of the button presses
+## _begin()             : Resets the Dataset & Starts from the beginning
+## _quit()              : Quits the Application
 
 def smileCallback():
     trainer.record_result(smile=True)
@@ -129,17 +132,17 @@ def smileCallback():
     displayFace(trainer.imgs[trainer.index])
     updateImageCount()
 
-def updateImageCount():
-    global imageCountString
-    imageCountString = "Image Index: " + str(trainer.index) + "/400   " + "[" + str(float(trainer.index * 0.25)) + " %]"
-    var.set(imageCountString)
-
-
 def noSmileCallback():
     trainer.record_result(smile=False)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
     updateImageCount()
+
+def updateImageCount():
+    global imageCountString             # Updating only when called by smileCallback/noSmileCallback
+    imageCountPercentage = str(float((trainer.index + 1) * 0.25)) if trainer.index < 399 else "Classification DONE! 100"
+    imageCountString = "Image Index: " + str(trainer.index+1) + "/400   " + "[" + imageCountPercentage + " %]"
+    var.set(imageCountString)           # Updating the Label (ImageCount)
 
 def displayFace(face):
     ax.imshow(face, cmap='gray')
@@ -166,7 +169,7 @@ noSmileButton.pack(side=Tk.RIGHT)
 
 var = Tk.StringVar()
 label = Tk.Label(master=root, textvariable=var)
-imageCountString = "Image Index: 0/400   [0 %]"
+imageCountString = "Image Index: 0/400   [0 %]"     # Initial print
 var.set(imageCountString)
 label.pack()
 
