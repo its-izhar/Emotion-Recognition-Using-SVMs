@@ -49,11 +49,13 @@ if sys.version_info[0] < 3:
 else:
     import tkinter as Tk
 
+print(__doc__)
 
 # Embedding things in a tkinter plot & Starting tkinter plot
 matplotlib.use('TkAgg')
 root = Tk.Tk()
 root.wm_title("Faces")
+
 
 faces = datasets.fetch_olivetti_faces()
 print faces.keys()
@@ -100,6 +102,7 @@ trainer = Trainer()
 # Creating the figure to be embedded into the tkinter plot
 f = plt.figure()
 ax = f.add_subplot(111)
+ax.imshow(faces.images[0], cmap='gray')
 
 # ax tk.DrawingArea
 canvas = FigureCanvasTkAgg(f, master=root)
@@ -117,20 +120,30 @@ canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 ## smileCallback()  : Gets called when "Happy" Button is pressed
 ## noSmileCallback(): Gets called when "Sad" Button is pressed
 ## displayFace()    : Gets called internally by either of the button presses
+## _begin()         : Resets the Dataset & Starts from the beginning
+## _quit()          : Quits the Application
 
 def smileCallback():
     trainer.record_result(smile=True)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
+    updateImageCount()
+
+def updateImageCount():
+    global imageCountString
+    imageCountString = "Image Index: " + str(trainer.index) + "/400   " + "[" + str(float(trainer.index * 0.25)) + " %]"
+    var.set(imageCountString)
+
 
 def noSmileCallback():
     trainer.record_result(smile=False)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
+    updateImageCount()
 
 def displayFace(face):
     ax.imshow(face, cmap='gray')
-    f.canvas.draw()
+    canvas.draw()
 
 def _begin():
     trainer.reset()
@@ -151,11 +164,17 @@ smileButton.pack(side=Tk.LEFT)
 noSmileButton = Tk.Button(master=root, text='Sad', command=noSmileCallback)
 noSmileButton.pack(side=Tk.RIGHT)
 
-button = Tk.Button(master=root, text='Begin/Reset', command=_begin)
+var = Tk.StringVar()
+label = Tk.Label(master=root, textvariable=var)
+imageCountString = "Image Index: 0/400   [0 %]"
+var.set(imageCountString)
+label.pack()
+
+button = Tk.Button(master=root, text='Reset', command=_begin)
 button.pack(side=Tk.TOP)
 
-button = Tk.Button(master=root, text='Quit', command=_quit)
+button = Tk.Button(master=root, text='Quit Application', command=_quit)
 button.pack(side=Tk.BOTTOM)
 
-Tk.mainloop()
-print trainer.results
+Tk.mainloop()                   # Starts mainloop required by Tk
+print trainer.results           # Prints the results
