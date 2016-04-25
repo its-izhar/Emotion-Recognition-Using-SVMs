@@ -3,7 +3,7 @@ from sklearn import datasets
 
 # Fetching the dataset
 faces = datasets.fetch_olivetti_faces()
-print faces.keys()
+print "Keys in the DATASET: ", faces.keys()
 
 # ==========================================================================
 # Traverses through the dataset by incrementing index & records the result
