@@ -43,10 +43,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-
-print(__doc__)
-
-from Trainer import *
+from TrainDataset import *
 
 import sys
 if sys.version_info[0] < 3:
@@ -54,12 +51,14 @@ if sys.version_info[0] < 3:
 else:
     import tkinter as Tk
 
+print(__doc__)
 
 # Embedding things in a tkinter plot & Starting tkinter plot
 matplotlib.use('TkAgg')
 root = Tk.Tk()
 root.wm_title("Emotion Recognition Using Scikit-Learn & OpenCV")
 
+print "Keys in the Dataset: ", faces.keys()
 print "Total Images in Olivetti Dataset:",  len(faces.images)
 
 

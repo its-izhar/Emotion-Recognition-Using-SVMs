@@ -31,7 +31,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score, KFold
 from scipy.stats import sem
 from sklearn import metrics
-from Trainer import *
+from TrainDataset import *
 
 # =====================================================================
 # TEST CLASSIFIER FLAG (Disabled by default)
