@@ -42,6 +42,7 @@ import matplotlib
 from sklearn import datasets
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import matplotlib.pyplot as plt
+import numpy as np
 
 import sys
 if sys.version_info[0] < 3:
@@ -81,7 +82,7 @@ class Trainer:
         self.index = 0
 
     def increment_face(self):
-        if self.index + 1 >= len(self.imgs):
+        if self.index + 1 >= len(self.imgs)/8:
             return self.index
         else:
             while str(self.index) in self.results:
@@ -100,10 +101,9 @@ class Trainer:
 trainer = Trainer()
 
 # Creating the figure to be embedded into the tkinter plot
-f = plt.figure(dpi=75, facecolor='black')
-plt.axis('off')
-ax = f.add_subplot(111)
-ax.imshow(faces.images[0], cmap='gray')
+f, ax = plt.subplots(1, 2)
+ax[0].imshow(faces.images[0], cmap='gray')
+ax[1].axis('off')       # Initially keeping the Bar graph OFF
 
 # ax tk.DrawingArea
 # Embedding the Matplotlib figure 'f' into Tkinter canvas
@@ -119,12 +119,22 @@ canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 # ===================================
 # Callback function for the buttons
 # ===================================
-## smileCallback()      : Gets called when "Happy" Button is pressed
-## noSmileCallback()    : Gets called when "Sad" Button is pressed
-## updateImageCount()   : Displays the number of images processed
-## displayFace()        : Gets called internally by either of the button presses
-## _begin()             : Resets the Dataset & Starts from the beginning
-## _quit()              : Quits the Application
+## smileCallback()              : Gets called when "Happy" Button is pressed
+## noSmileCallback()            : Gets called when "Sad" Button is pressed
+## updateImageCount()           : Displays the number of images processed
+## displayFace()                : Gets called internally by either of the button presses
+## displayBarGraph(isBarGraph)  : computes the bar graph after classification is completed 100%
+## _begin()                     : Resets the Dataset & Starts from the beginning
+## _quit()                      : Quits the Application
+## run_once(m)                  : Decorator to allow functions to run only once
+
+def run_once(m):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return m(*args, **kwargs)
+    wrapper.has_run = False
+    return wrapper
 
 def smileCallback():
     trainer.record_result(smile=True)
@@ -132,25 +142,53 @@ def smileCallback():
     displayFace(trainer.imgs[trainer.index])
     updateImageCount()
 
+
 def noSmileCallback():
     trainer.record_result(smile=False)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
     updateImageCount()
 
+
 def updateImageCount():
     global imageCountString             # Updating only when called by smileCallback/noSmileCallback
-    imageCountPercentage = str(float((trainer.index + 1) * 0.25)) if trainer.index < 399 else "Classification DONE! 100"
+    imageCountPercentage = str(float((trainer.index + 1) * 0.25)) \
+        if trainer.index+1 < len(faces.images)/8 else "Classification DONE! 100"
     imageCountString = "Image Index: " + str(trainer.index+1) + "/400   " + "[" + imageCountPercentage + " %]"
     var.set(imageCountString)           # Updating the Label (ImageCount)
 
+
+@run_once
+def displayBarGraph(isBarGraph):
+    ax[1].axis(isBarGraph)
+    n_groups = 1                    # Data to plot
+    Happy, Sad = (sum([trainer.results[x] == True for x in trainer.results]),
+               sum([trainer.results[x] == False for x in trainer.results]))
+    index = np.arange(n_groups)     # Create Plot
+    bar_width = 0.5
+    opacity = 0.75
+    ax[1].bar(index, Happy, bar_width, alpha=opacity, color='b', label='Happy')
+    ax[1].bar(index + bar_width, Sad, bar_width, alpha=opacity, color='g', label='Sad')
+    ax[1].set_ylim(0, max(Happy, Sad)+10)
+    ax[1].set_xlabel('Expression')
+    ax[1].set_ylabel('Number of Images')
+    ax[1].set_title('Training Data Classification')
+    ax[1].legend()
+
+
 def displayFace(face):
-    ax.imshow(face, cmap='gray')
+    ax[0].imshow(face, cmap='gray')
+    isBarGraph = 'on' if trainer.index+1 == len(faces.images)/8 else 'off'      # Switching Bar Graph ON
+    if isBarGraph is 'on':
+        displayBarGraph(isBarGraph)
+    f.tight_layout()
     canvas.draw()
+
 
 def _begin():
     trainer.reset()
     displayFace(trainer.imgs[trainer.index])
+
 
 def _quit():
     root.quit()     # stops mainloop
