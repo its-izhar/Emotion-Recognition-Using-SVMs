@@ -123,7 +123,7 @@ def noSmileCallback():
 def updateImageCount():
     global imageCountString             # Updating only when called by smileCallback/noSmileCallback
     imageCountPercentage = str(float((trainer.index + 1) * 0.25)) \
-        if trainer.index+1 < len(faces.images)/8 else "Classification DONE! 100"
+        if trainer.index+1 < len(faces.images) else "Classification DONE! 100"
     imageCountString = "Image Index: " + str(trainer.index+1) + "/400   " + "[" + imageCountPercentage + " %]"
     var.set(imageCountString)           # Updating the Label (ImageCount)
 
@@ -160,7 +160,7 @@ def loadResult():
 
 def displayFace(face):
     ax[0].imshow(face, cmap='gray')
-    isBarGraph = 'on' if trainer.index+1 == len(faces.images)/8 else 'off'      # Switching Bar Graph ON
+    isBarGraph = 'on' if trainer.index+1 == len(faces.images) else 'off'      # Switching Bar Graph ON
     if isBarGraph is 'on':
         displayBarGraph(isBarGraph)
         printAndSaveResult()
