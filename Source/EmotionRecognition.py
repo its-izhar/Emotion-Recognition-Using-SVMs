@@ -148,18 +148,18 @@ def displayBarGraph(isBarGraph):
 @run_once
 def printAndSaveResult():
     print trainer.results                       # Prints the results
-    with open('results.xml', 'w') as output:
+    with open("../results/results.xml", 'w') as output:
         json.dump(trainer.results, output)        # Saving The Result
 
 @run_once
 def loadResult():
-    results = json.load(open('results.xml'))
+    results = json.load(open("../results/results.xml"))
     trainer.results = results
 
 
 def displayFace(face):
     ax[0].imshow(face, cmap='gray')
-    isBarGraph = 'on' if trainer.index+1 == len(faces.images) else 'off'      # Switching Bar Graph ON
+    isBarGraph = 'on' if trainer.index+1 == len(faces.images)/8 else 'off'      # Switching Bar Graph ON
     if isBarGraph is 'on':
         displayBarGraph(isBarGraph)
         printAndSaveResult()

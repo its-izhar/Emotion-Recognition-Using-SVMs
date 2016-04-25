@@ -43,7 +43,7 @@ TEST_CLASSIFIER = True
 svc_1 = SVC(kernel='linear')                    # Initializing Classifier
 
 trainer = Trainer()
-results = json.load(open('results.xml'))        # Loading the classification result
+results = json.load(open("../results/results.xml"))        # Loading the classification result
 trainer.results = results
 
 #for i in trainer.results:
