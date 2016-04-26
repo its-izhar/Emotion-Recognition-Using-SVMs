@@ -43,6 +43,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+import atexit
+import subprocess
 from TrainDataset import *
 
 import sys
@@ -109,22 +111,34 @@ def smileCallback():
     trainer.record_result(smile=True)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
-    updateImageCount()
+    updateImageCount(happyCount=True, sadCount= False)
 
 
 def noSmileCallback():
     trainer.record_result(smile=False)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
-    updateImageCount()
+    updateImageCount(happyCount=False, sadCount=True)
 
 
-def updateImageCount():
-    global imageCountString             # Updating only when called by smileCallback/noSmileCallback
+def updateImageCount(happyCount, sadCount):
+    global HCount, SCount, imageCountString, countString   # Updating only when called by smileCallback/noSmileCallback
+    if happyCount is True and HCount < 400:
+        HCount += 1
+    if sadCount is True and SCount < 400:
+        SCount += 1
+    if HCount == 400 or SCount == 400:
+        HCount = 0
+        SCount = 0
+    # --- Updating Labels
+    # -- Main Count
     imageCountPercentage = str(float((trainer.index + 1) * 0.25)) \
         if trainer.index+1 < len(faces.images) else "Classification DONE! 100"
     imageCountString = "Image Index: " + str(trainer.index+1) + "/400   " + "[" + imageCountPercentage + " %]"
-    var.set(imageCountString)           # Updating the Label (ImageCount)
+    labelVar.set(imageCountString)           # Updating the Label (ImageCount)
+    # -- Individual Counts
+    countString = "(Happy: " + str(HCount) + "   " + "Sad: " + str(SCount) + ")"
+    countVar.set(countString)
 
 
 @run_once
@@ -159,7 +173,7 @@ def loadResult():
 
 def displayFace(face):
     ax[0].imshow(face, cmap='gray')
-    isBarGraph = 'on' if trainer.index+1 == len(faces.images)/8 else 'off'      # Switching Bar Graph ON
+    isBarGraph = 'on' if trainer.index+1 == len(faces.images) else 'off'      # Switching Bar Graph ON
     if isBarGraph is 'on':
         displayBarGraph(isBarGraph)
         printAndSaveResult()
@@ -167,8 +181,17 @@ def displayFace(face):
     canvas.draw()
 
 
+def _opencv():
+    opencvProcess = subprocess.Popen("TrainClassifier.py", close_fds=True, shell=True)
+    # opencvProcess.communicate()
+
+
 def _begin():
     trainer.reset()
+    global HCount, SCount
+    HCount = 0
+    SCount = 0
+    updateImageCount(happyCount=False, sadCount=False)
     displayFace(trainer.imgs[trainer.index])
 
 
@@ -179,24 +202,35 @@ def _quit():
 
 
 # =======================================
-# Declaring Button Instances (2 Buttons)
+# Declaring Button & Label Instances
 # =======================================
-smileButton = Tk.Button(master=root, text='Happy', command=smileCallback)
+smileButton = Tk.Button(master=root, text='Smiling', command=smileCallback)
 smileButton.pack(side=Tk.LEFT)
 
-noSmileButton = Tk.Button(master=root, text='Sad', command=noSmileCallback)
+noSmileButton = Tk.Button(master=root, text='Not Smiling', command=noSmileCallback)
 noSmileButton.pack(side=Tk.RIGHT)
 
-var = Tk.StringVar()
-label = Tk.Label(master=root, textvariable=var)
+labelVar = Tk.StringVar()
+label = Tk.Label(master=root, textvariable=labelVar)
 imageCountString = "Image Index: 0/400   [0 %]"     # Initial print
-var.set(imageCountString)
-label.pack()
+labelVar.set(imageCountString)
+label.pack(side=Tk.TOP)
 
-button = Tk.Button(master=root, text='Reset', command=_begin)
-button.pack(side=Tk.TOP)
+countVar = Tk.StringVar()
+HCount = 0
+SCount = 0
+countLabel = Tk.Label(master=root, textvariable=countVar)
+countString = "(Happy: 0   Sad: 0)"     # Initial print
+countVar.set(countString)
+countLabel.pack(side=Tk.TOP)
 
-button = Tk.Button(master=root, text='Quit Application', command=_quit)
-button.pack(side=Tk.BOTTOM)
+opencvButton = Tk.Button(master=root, text='Click Here To Test Live Video Feed', command=_opencv)
+opencvButton.pack(side=Tk.TOP)
+
+resetButton = Tk.Button(master=root, text='Reset', command=_begin)
+resetButton.pack(side=Tk.TOP)
+
+quitButton = Tk.Button(master=root, text='Quit Application', command=_quit)
+quitButton.pack(side=Tk.BOTTOM)
 
 Tk.mainloop()                               # Starts mainloop required by Tk

@@ -246,20 +246,20 @@ while True:
             # draw extracted face in the top right corner
             frame[face_index * 64: (face_index + 1) * 64, -65:-1, :] = cv2.cvtColor(extracted_face * 255, cv2.COLOR_GRAY2RGB)
 
+            cv2.putText(frame, "Press Esc to QUIT", (15, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 1)
+
             # annotate main image with a label
             if prediction_result is True:
-                cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 10)
+                cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
             else:
-                cv2.putText(frame, "not smiling",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 10)
+                cv2.putText(frame, "Not Smiling",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
 
             # increment counter
             face_index += 1
 
-
     # Display the resulting frame
     cv2.imshow('Video', frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == 27:
         break
 
 # When everything is done, release the capture
