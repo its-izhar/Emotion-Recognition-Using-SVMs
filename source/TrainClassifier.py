@@ -37,7 +37,8 @@ from TrainDataset import *
 # TEST CLASSIFIER FLAG (Disabled by default)
 # Enable this flag to test the trained classifier on the training data
 # =====================================================================
-TEST_CLASSIFIER = True
+TEST_CLASSIFIER = False
+FACE_DETECT_TEST = False
 # =====================================================================
 
 svc_1 = SVC(kernel='linear')                    # Initializing Classifier
@@ -149,3 +150,69 @@ if TEST_CLASSIFIER is True:
     quitButton.pack(side=Tk.BOTTOM)
 
     top.mainloop()
+
+
+# ===============================================================================
+# from FaceDetect.py
+# ===============================================================================
+# To test your own image:
+#  - Put the image in data folder
+#  - Make sure the image is grayscale and in 64*64 size
+
+if FACE_DETECT_TEST is True:
+    from FacePredict import *
+
+    testFaceImage = detectFaces()
+    print ""
+    print "Result: " + "SMILING!" if svc_1.predict(testFaceImage) == 1 else "NOT SMILING!"
+
+# ===============================================================================
+# from FaceDetectPredict.py
+# ===============================================================================
+
+import cv2
+import numpy as np
+from scipy.ndimage import zoom
+
+def detectFaces(frame):
+    cascPath = "../data/haarcascade_frontalface_default.xml"
+    faceCascade = cv2.CascadeClassifier(cascPath)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    detected_faces = faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=6,
+            minSize=(50, 50),
+            flags=cv2.CASCADE_SCALE_IMAGE)
+    return gray, detected_faces
+
+
+def extract_face_features(gray, detected_face, offset_coefficients):
+    (x, y, w, h) = detected_face
+    horizontal_offset = int(offset_coefficients[0] * w)
+    vertical_offset = int(offset_coefficients[1] * h)
+    extracted_face = gray[y + vertical_offset:y + h,
+                     x + horizontal_offset:x - horizontal_offset + w]
+    new_extracted_face = zoom(extracted_face, (64. / extracted_face.shape[0],
+                                               64. / extracted_face.shape[1]))
+    new_extracted_face = new_extracted_face.astype(np.float32)
+    new_extracted_face /= float(new_extracted_face.max())
+    return new_extracted_face
+
+def predict_face_is_smiling(extracted_face):
+    return True if svc_1.predict(extracted_face.reshape(1, -1)) else False
+
+gray1, face1 = detectFaces(cv2.imread("../data/Test3.jpg"))
+gray2, face2 = detectFaces(cv2.imread("../data/Test2.jpg"))
+
+def test_recognition(c1, c2):
+    extracted_face1 = extract_face_features(gray1, face1[0], (c1, c2))
+    print(predict_face_is_smiling(extracted_face1))
+    extracted_face2 = extract_face_features(gray2, face2[0], (c1, c2))
+    print(predict_face_is_smiling(extracted_face2))
+    cv2.imshow('gray1', extracted_face1)
+    cv2.imshow('gray2', extracted_face2)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+test_recognition(0.3, 0.05)
